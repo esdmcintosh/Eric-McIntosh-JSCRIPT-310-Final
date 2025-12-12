@@ -5,7 +5,7 @@
 // ------------------------------
 class QuoteFetcher {
     static async getQuotesByCharacter(name) {
-        const apiKey = "d-cbR2FdYIeT07IgfIol";  // <-- Insert your key
+        const apiKey = "";  // <-- API Key goes here
 
         const res = await fetch(`https://the-one-api.dev/v2/character?name=${name}`, {
             headers: {
