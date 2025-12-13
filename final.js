@@ -5,46 +5,74 @@
 // ------------------------------
 class QuoteFetcher {
     static async getQuotesByCharacter(name) {
-        const apiKey = "";  // <-- API Key goes here
+        const apiKey = "d-cbR2FdYIeT07IgfIol"; // <-- YOUR API KEY HERE
 
-        const res = await fetch(`https://the-one-api.dev/v2/character?name=${name}`, {
-            headers: {
-                "Authorization": `Bearer ${apiKey}`
+        // Fetch ALL characters (API name search is accent-sensitive)
+        const res = await fetch(
+            "https://the-one-api.dev/v2/character",
+            {
+                headers: {
+                    Authorization: `Bearer ${apiKey}`
+                }
             }
-        });
+        );
 
         const data = await res.json();
 
-        if (data.docs.length === 0) {
+        if (!data.docs || data.docs.length === 0) {
+            throw new Error("No characters returned from API");
+        }
+
+        // Normalize strings (remove accents, lowercase)
+        const normalize = str =>
+            str
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase();
+
+        const inputName = normalize(name);
+
+        // Match characters manually
+        const matches = data.docs.filter(char =>
+            normalize(char.name).includes(inputName)
+        );
+
+        if (matches.length === 0) {
             throw new Error("Character not found");
         }
 
-        const characterId = data.docs[0]._id;
+        // Try each matching character until one has quotes
+        for (const character of matches) {
+            const quoteRes = await fetch(
+                `https://the-one-api.dev/v2/quote?character=${character._id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${apiKey}`
+                    }
+                }
+            );
 
-        // Fetch quotes by character ID
-        const quoteRes = await fetch(`https://the-one-api.dev/v2/quote?character=${characterId}`, {
-            headers: {
-                "Authorization": `Bearer ${apiKey}`
+            const quoteData = await quoteRes.json();
+
+            if (quoteData.docs && quoteData.docs.length > 0) {
+                const randomQuote =
+                    quoteData.docs[Math.floor(Math.random() * quoteData.docs.length)];
+
+                return {
+                    name: character.name,
+                    quote: randomQuote.dialog
+                };
             }
-        });
-
-        const quoteData = await quoteRes.json();
-
-        if (quoteData.docs.length === 0) {
-            throw new Error("No quotes found for this character");
         }
 
-        // Return a random quote
-        const randomQuote = quoteData.docs[Math.floor(Math.random() * quoteData.docs.length)];
-        return {
-            name: data.docs[0].name,
-            quote: randomQuote.dialog
-        };
+        throw new Error("No quotes found for this character");
     }
 }
 
 
+// ------------------------------
 // DOM ELEMENTS
+// ------------------------------
 const form = document.getElementById("quote-form");
 const charInput = document.getElementById("character");
 const errorMessage = document.getElementById("error-message");
@@ -74,8 +102,7 @@ form.addEventListener("submit", async function (e) {
         const result = await QuoteFetcher.getQuotesByCharacter(name);
         nameBox.textContent = result.name;
         quoteBox.textContent = `"${result.quote}"`;
-    }
-    catch (err) {
+    } catch (err) {
         nameBox.textContent = "";
         quoteBox.textContent = "";
         errorMessage.textContent = err.message;
