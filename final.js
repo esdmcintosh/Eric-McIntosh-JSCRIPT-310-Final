@@ -5,7 +5,7 @@
 // ------------------------------
 class QuoteFetcher {
     static async getQuotesByCharacter(name) {
-        const apiKey = "d-cbR2FdYIeT07IgfIol"; // <-- YOUR API KEY HERE
+        const apiKey = "d-cbR2FdYIeT07IgfIol"; // <-- API Key goes here
 
         // Fetch ALL characters (API name search is accent-sensitive)
         const res = await fetch(
