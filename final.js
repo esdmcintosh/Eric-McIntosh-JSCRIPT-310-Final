@@ -1,11 +1,9 @@
-// the-one-api key: d-cbR2FdYIeT07IgfIol
-
 // ------------------------------
 // CLASS with STATIC method
 // ------------------------------
 class QuoteFetcher {
     static async getQuotesByCharacter(name) {
-        const apiKey = "d-cbR2FdYIeT07IgfIol"; // <-- API Key goes here
+        const apiKey = ""; // <-- API Key goes here
 
         // Fetch ALL characters (API name search is accent-sensitive)
         const res = await fetch(
